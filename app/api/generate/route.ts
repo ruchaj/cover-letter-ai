@@ -1,6 +1,5 @@
 import {anthropic} from '@ai-sdk/anthropic';
 import {streamText} from 'ai';
-import { needsExperimentalReact } from 'next/dist/lib/needs-experimental-react';
 
 export const maxDuration = 30;
 

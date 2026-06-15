@@ -26,12 +26,15 @@ export default function Page() {
         throw new Error(errorText || 'Failed to generate output.');
       }
 
-      const data = await response.json();
-      const text =
-        typeof data === 'string'
-          ? data
-          : data.completion ?? data.result ?? data.output ?? '';
-      setCompletion(text);
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let text = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        text += decoder.decode(value, { stream: true });
+        setCompletion(text);
+      }
     } catch (error) {
       console.error('Generation failed', error);
       setCompletion('Failed to generate cover letter.');
