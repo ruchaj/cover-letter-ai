@@ -1,5 +1,16 @@
 'use client';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import styles from './page.module.css';
 
 export default function Page() {
   const [jobDescription, setJD] = useState('');
@@ -7,6 +18,7 @@ export default function Page() {
   const [tone, setTone] = useState('professional');
   const [completion, setCompletion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -15,9 +27,7 @@ export default function Page() {
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobDescription, background, tone }),
       });
 
@@ -37,7 +47,7 @@ export default function Page() {
       }
     } catch (error) {
       console.error('Generation failed', error);
-      setCompletion('Failed to generate cover letter.');
+      setCompletion('Failed to generate cover letter. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -47,85 +57,132 @@ export default function Page() {
     if (!completion) return;
     try {
       await navigator.clipboard.writeText(completion);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Copy failed', error);
     }
   };
 
   return (
-    <main className="space-y-6 p-6">
-      <div className="grid gap-4">
-        <label className="flex flex-col">
-          Job description
-          <textarea
-            value={jobDescription}
-            onChange={(e) => setJD(e.target.value)}
-            rows={4}
-            className="mt-2 rounded border p-2"
-            placeholder="Paste the job description here"
-          />
-        </label>
+    <div className={styles.pageWrapper}>
+      <div className={styles.container}>
 
-        <label className="flex flex-col">
-          Your background
-          <textarea
-            value={background}
-            onChange={(e) => setBg(e.target.value)}
-            rows={4}
-            className="mt-2 rounded border p-2"
-            placeholder="Briefly describe your experience"
-          />
-        </label>
+        {/* Header */}
+        <div className={styles.header}>
+          <div className={styles.iconWrapper}>
+            <svg className={styles.icon} fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+          </div>
+          <h1 className={styles.title}>Cover Letter AI</h1>
+          <p className={styles.subtitle}>Tailored cover letters in seconds — no clichés, no fluff.</p>
+        </div>
 
-        <label className="flex flex-col">
-          Tone
-          <select
-            value={tone}
-            onChange={(e) => setTone(e.target.value)}
-            className="mt-2 rounded border p-2"
-          >
-            <option value="professional">Professional</option>
-            <option value="concise">Concise</option>
-            <option value="friendly">Friendly</option>
-            <option value="creative">Creative</option>
-          </select>
-        </label>
-      </div>
+        {/* Form card */}
+        <Card className={styles.formCard}>
+          <CardHeader className="pb-4">
+            <CardTitle className={styles.formCardTitle}>Your details</CardTitle>
+            <CardDescription>Fill in the fields below and click Generate.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          disabled={isLoading}
-          onClick={handleGenerate}
-          className="rounded bg-slate-800 px-4 py-2 text-white disabled:opacity-50"
-        >
-          {isLoading ? 'Writing…' : 'Generate'}
-        </button>
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Job description</label>
+              <Textarea
+                value={jobDescription}
+                onChange={(e) => setJD(e.target.value)}
+                rows={5}
+                placeholder="Paste the job description here…"
+                className={styles.textarea}
+              />
+            </div>
 
-        {completion && (
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={handleGenerate}
-            className="rounded bg-slate-600 px-4 py-2 text-white disabled:opacity-50"
-          >
-            Regenerate
-          </button>
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Your background</label>
+              <Textarea
+                value={background}
+                onChange={(e) => setBg(e.target.value)}
+                rows={4}
+                placeholder="Briefly describe your experience, skills, and what makes you a great fit…"
+                className={styles.textarea}
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.fieldLabel}>Tone</label>
+              <Select value={tone} onValueChange={(value) => value && setTone(value)}>
+                <SelectTrigger className={styles.toneSelect}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="professional">Professional</SelectItem>
+                  <SelectItem value="concise">Concise</SelectItem>
+                  <SelectItem value="friendly">Friendly</SelectItem>
+                  <SelectItem value="creative">Creative</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className={styles.buttonRow}>
+              <Button
+                disabled={isLoading || (!jobDescription.trim() && !background.trim())}
+                onClick={handleGenerate}
+                className={styles.generateButton}
+              >
+                {isLoading ? (
+                  <span className={styles.spinnerWrapper}>
+                    <svg className={styles.spinner} viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                    </svg>
+                    Writing…
+                  </span>
+                ) : completion ? 'Regenerate' : 'Generate'}
+              </Button>
+
+              {completion && (
+                <Button variant="outline" disabled={isLoading} onClick={handleCopy}>
+                  {copied ? (
+                    <span className={styles.copyIconWrapper}>
+                      <svg className={styles.copySuccessIcon} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                      Copied!
+                    </span>
+                  ) : (
+                    <span className={styles.copyIconWrapper}>
+                      <svg className={styles.copyIcon} fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                      </svg>
+                      Copy to clipboard
+                    </span>
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Output */}
+        {(completion || isLoading) && (
+          <Card className={styles.outputCard}>
+            <CardHeader className="pb-2">
+              <CardTitle className={styles.outputCardTitle}>
+                Cover letter
+                {isLoading && <span className={styles.pulseDot} />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={styles.outputContent}>
+                {completion}
+                {isLoading && <span className={styles.cursor}>▍</span>}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
-        <button
-          type="button"
-          disabled={!completion}
-          onClick={handleCopy}
-          className="rounded border px-4 py-2 disabled:opacity-50"
-        >
-          Copy to clipboard
-        </button>
       </div>
-
-      <article className="whitespace-pre-wrap rounded border p-4 bg-slate-50 min-h-[10rem]">
-        {completion || 'Generated output will appear here.'}
-      </article>
-    </main>
+    </div>
   );
 }

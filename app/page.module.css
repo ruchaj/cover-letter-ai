@@ -1,0 +1,109 @@
+.pageWrapper {
+  @apply min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50
+    dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950;
+}
+
+.container {
+  @apply mx-auto max-w-3xl px-4 py-12 sm:px-6;
+}
+
+/* ── Header ── */
+
+.header {
+  @apply mb-10 text-center;
+}
+
+.iconWrapper {
+  @apply mb-3 inline-flex items-center justify-center rounded-2xl bg-indigo-600 p-3
+    shadow-lg shadow-indigo-200 dark:shadow-indigo-900;
+}
+
+.icon {
+  @apply size-7 text-white;
+}
+
+.title {
+  @apply text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50;
+}
+
+.subtitle {
+  @apply mt-2 text-slate-500 dark:text-slate-400;
+}
+
+/* ── Form card ── */
+
+.formCard {
+  @apply shadow-sm border-slate-200 dark:border-slate-800;
+}
+
+.formCardTitle {
+  @apply text-base font-semibold text-slate-800 dark:text-slate-100;
+}
+
+.field {
+  @apply space-y-1.5;
+}
+
+.fieldLabel {
+  @apply text-sm font-medium text-slate-700 dark:text-slate-300;
+}
+
+.textarea {
+  @apply resize-none text-sm;
+}
+
+.toneSelect {
+  @apply w-48;
+}
+
+.buttonRow {
+  @apply flex flex-wrap gap-2 pt-1;
+}
+
+.generateButton {
+  @apply min-w-[110px] bg-indigo-600 text-white hover:bg-indigo-700;
+}
+
+.spinnerWrapper {
+  @apply flex items-center gap-2;
+}
+
+.spinner {
+  @apply size-4 animate-spin;
+}
+
+.copyIconWrapper {
+  @apply flex items-center gap-1.5;
+}
+
+.copySuccessIcon {
+  @apply size-4 text-green-600;
+}
+
+.copyIcon {
+  @apply size-4;
+}
+
+/* ── Output card ── */
+
+.outputCard {
+  @apply mt-6 shadow-sm border-slate-200 dark:border-slate-800;
+}
+
+.outputCardTitle {
+  @apply flex items-center gap-2 text-base font-semibold text-slate-800 dark:text-slate-100;
+}
+
+.pulseDot {
+  @apply inline-block size-2 animate-pulse rounded-full bg-indigo-500;
+}
+
+.outputContent {
+  @apply min-h-[12rem] whitespace-pre-wrap rounded-lg bg-slate-50 p-5 text-sm
+    leading-relaxed text-slate-800 dark:bg-slate-900 dark:text-slate-200;
+  font-family: var(--font-geist-mono);
+}
+
+.cursor {
+  @apply animate-pulse text-indigo-500;
+}
