@@ -1,15 +1,43 @@
 'use client';
-import { useCompletion } from '@ai-sdk/react';
 import { useState } from 'react';
 
 export default function Page() {
   const [jobDescription, setJD] = useState('');
   const [background, setBg] = useState('');
   const [tone, setTone] = useState('professional');
-  const { completion, complete, isLoading } = useCompletion({ api: '/api/generate' });
+  const [completion, setCompletion] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleGenerate = () => {
-    complete('', { body: { jobDescription, background, tone } });
+  const handleGenerate = async () => {
+    setIsLoading(true);
+    setCompletion('');
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ jobDescription, background, tone }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to generate output.');
+      }
+
+      const data = await response.json();
+      const text =
+        typeof data === 'string'
+          ? data
+          : data.completion ?? data.result ?? data.output ?? '';
+      setCompletion(text);
+    } catch (error) {
+      console.error('Generation failed', error);
+      setCompletion('Failed to generate cover letter.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCopy = async () => {
