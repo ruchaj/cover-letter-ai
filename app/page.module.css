@@ -86,6 +86,44 @@
   @apply size-4;
 }
 
+/* ── URL / file input rows ── */
+
+.inputRow {
+  @apply flex items-center gap-2 mt-2;
+}
+
+.inputRowLabel {
+  @apply shrink-0 text-xs text-muted-foreground;
+}
+
+.urlInput {
+  @apply h-9 flex-1 rounded-md border border-input bg-transparent px-3 py-1.5 text-sm
+    shadow-xs outline-none transition-[color,box-shadow]
+    focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50
+    dark:bg-input/30;
+}
+
+.fetchButton {
+  @apply shrink-0;
+}
+
+.uploadButton {
+  @apply shrink-0 cursor-pointer;
+}
+
+.fileChip {
+  @apply flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs
+    font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300;
+}
+
+.fileChipIcon {
+  @apply size-3 text-indigo-500;
+}
+
+.errorText {
+  @apply mt-1 text-xs text-destructive;
+}
+
 /* ── Output card ── */
 
 .outputCard {

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -20,22 +20,67 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [jdUrl, setJdUrl] = useState('');
+  const [isFetchingJd, setIsFetchingJd] = useState(false);
+  const [jdFetchError, setJdFetchError] = useState('');
+
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [isParsingResume, setIsParsingResume] = useState(false);
+  const [resumeError, setResumeError] = useState('');
+  const resumeInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFetchJd = async () => {
+    if (!jdUrl.trim()) return;
+    setIsFetchingJd(true);
+    setJdFetchError('');
+    try {
+      const res = await fetch('/api/fetch-jd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: jdUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Fetch failed');
+      setJD(data.text);
+    } catch (err) {
+      setJdFetchError(err instanceof Error ? err.message : 'Could not fetch URL.');
+    } finally {
+      setIsFetchingJd(false);
+    }
+  };
+
+  const handleResumeUpload = async (file: File) => {
+    setResumeFile(file);
+    setIsParsingResume(true);
+    setResumeError('');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/parse-resume', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Parse failed');
+      setBg(data.text);
+    } catch (err) {
+      setResumeError(err instanceof Error ? err.message : 'Could not parse file.');
+      setResumeFile(null);
+    } finally {
+      setIsParsingResume(false);
+    }
+  };
+
   const handleGenerate = async () => {
     setIsLoading(true);
     setCompletion('');
-
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobDescription, background, tone }),
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || 'Failed to generate output.');
       }
-
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
       let text = '';
@@ -87,6 +132,7 @@ export default function Page() {
           </CardHeader>
           <CardContent className="space-y-5">
 
+            {/* Job description */}
             <div className={styles.field}>
               <label className={styles.fieldLabel}>Job description</label>
               <Textarea
@@ -96,8 +142,30 @@ export default function Page() {
                 placeholder="Paste the job description here…"
                 className={styles.textarea}
               />
+              <div className={styles.inputRow}>
+                <span className={styles.inputRowLabel}>or URL:</span>
+                <input
+                  type="url"
+                  value={jdUrl}
+                  onChange={(e) => { setJdUrl(e.target.value); setJdFetchError(''); }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleFetchJd()}
+                  placeholder="https://…"
+                  className={styles.urlInput}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isFetchingJd || !jdUrl.trim()}
+                  onClick={handleFetchJd}
+                  className={styles.fetchButton}
+                >
+                  {isFetchingJd ? 'Fetching…' : 'Fetch'}
+                </Button>
+              </div>
+              {jdFetchError && <p className={styles.errorText}>{jdFetchError}</p>}
             </div>
 
+            {/* Background / resume */}
             <div className={styles.field}>
               <label className={styles.fieldLabel}>Your background</label>
               <Textarea
@@ -107,8 +175,41 @@ export default function Page() {
                 placeholder="Briefly describe your experience, skills, and what makes you a great fit…"
                 className={styles.textarea}
               />
+              <div className={styles.inputRow}>
+                <span className={styles.inputRowLabel}>or upload resume:</span>
+                <input
+                  ref={resumeInputRef}
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleResumeUpload(file);
+                    e.target.value = '';
+                  }}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isParsingResume}
+                  onClick={() => resumeInputRef.current?.click()}
+                  className={styles.uploadButton}
+                >
+                  {isParsingResume ? 'Parsing…' : 'Upload'}
+                </Button>
+                {resumeFile && !isParsingResume && (
+                  <span className={styles.fileChip}>
+                    <svg className={styles.fileChipIcon} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    {resumeFile.name}
+                  </span>
+                )}
+              </div>
+              {resumeError && <p className={styles.errorText}>{resumeError}</p>}
             </div>
 
+            {/* Tone */}
             <div className={styles.field}>
               <label className={styles.fieldLabel}>Tone</label>
               <Select value={tone} onValueChange={(value) => value && setTone(value)}>
