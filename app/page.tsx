@@ -39,7 +39,7 @@ export default function Page() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: jdUrl }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ error: res.statusText || 'Request failed' }));
       if (!res.ok) throw new Error(data.error || 'Fetch failed');
       setJD(data.text);
     } catch (err) {
@@ -57,7 +57,7 @@ export default function Page() {
       const form = new FormData();
       form.append('file', file);
       const res = await fetch('/api/parse-resume', { method: 'POST', body: form });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ error: res.statusText || 'Request failed' }));
       if (!res.ok) throw new Error(data.error || 'Parse failed');
       setBg(data.text);
     } catch (err) {

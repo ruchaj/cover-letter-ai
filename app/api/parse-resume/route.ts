@@ -2,18 +2,18 @@ import mammoth from 'mammoth';
 import { PDFParse } from 'pdf-parse';
 
 export async function POST(req: Request) {
-  const formData = await req.formData();
-  const file = formData.get('file') as File | null;
-
-  if (!file) {
-    return Response.json({ error: 'No file provided' }, { status: 400 });
-  }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const name = file.name.toLowerCase();
-  let text: string;
-
   try {
+    const formData = await req.formData();
+    const file = formData.get('file') as File | null;
+
+    if (!file) {
+      return Response.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const name = file.name.toLowerCase();
+    let text: string;
+
     if (name.endsWith('.pdf')) {
       const parser = new PDFParse({ data: buffer });
       const result = await parser.getText();
@@ -26,9 +26,10 @@ export async function POST(req: Request) {
     } else {
       return Response.json({ error: 'Unsupported file type. Use PDF, DOCX, or TXT.' }, { status: 415 });
     }
-  } catch {
-    return Response.json({ error: 'Failed to parse file.' }, { status: 422 });
-  }
 
-  return Response.json({ text: text.trim().slice(0, 8000) });
+    return Response.json({ text: text.trim().slice(0, 8000) });
+  } catch (err) {
+    console.error('parse-resume error:', err);
+    return Response.json({ error: 'Failed to parse file.' }, { status: 500 });
+  }
 }
