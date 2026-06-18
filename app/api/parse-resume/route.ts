@@ -1,5 +1,5 @@
 import mammoth from 'mammoth';
-import { PDFParse } from 'pdf-parse';
+import { extractText } from 'unpdf';
 
 export async function POST(req: Request) {
   try {
@@ -15,9 +15,8 @@ export async function POST(req: Request) {
     let text: string;
 
     if (name.endsWith('.pdf')) {
-      const parser = new PDFParse({ data: buffer });
-      const result = await parser.getText();
-      text = result.text;
+      const { text: extracted } = await extractText(new Uint8Array(buffer), { mergePages: true });
+      text = extracted;
     } else if (name.endsWith('.docx')) {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
